@@ -1,24 +1,24 @@
 # 🐹 CapyBike Racer Pro
 
-**The Chillest Capybara Bike Racing Game**
+**The Chillest Capybara Motorcycle Racing Game**
 
-![Thumbnail](assets/thumbnail.png)
+![Thumbnail](https://picsum.photos/id/1015/1200/630)
 
-### Features
+### ✨ Features
 - Realistic bike leaning physics
 - 5 AI Capybara opponents
-- Items: Banana, Rocket, Shield, Bomb
-- Jump ramps
 - Mobile + Keyboard controls
-- Sound effects
-- Ready for **play.fun #capyjam**
+- Built for **play.fun #capyjam**
 
-### Play Now
-[Play the Game](https://your-vercel-link.vercel.app)
+### 🎮 Play Now
+[▶️ Play the Game](https://your-vercel-link.vercel.app)
+
+### Screenshots
+![Screenshot](https://picsum.photos/id/1016/1920/1080)
 
 ### How to Run Locally
 Just open `index.html` in your browser.
 
-Made for the Capybara community 🧡
+Made with ❤️ for the capybara community
 
-#CapyJam #Capybara #Web3Gaming
+#CapyJam #Capybara #WebGame
