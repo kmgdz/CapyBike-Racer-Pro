@@ -3,67 +3,80 @@
 <head>
 <meta charset="UTF-8">
 <title>CapyBike Racer Pro 🐹🏍️</title>
-<meta name="description" content="Chillest capybara motorcycle racing game">
-<meta name="x-ogp-key" content="YOUR_PLAYFUN_KEY_HERE"> <!-- Replace later -->
+<meta name="description" content="Chillest Capybara Motorcycle Racing Game">
+<meta name="x-ogp-key" content="YOUR_PLAYFUN_KEY_HERE"> <!-- Change after claiming on play.fun -->
 <style>
-  body { margin:0; overflow:hidden; background:#000; font-family:Arial; }
-  #ui { position:absolute; top:10px; left:10px; color:white; background:rgba(0,0,0,0.7); padding:12px; border-radius:8px; z-index:100; }
-  #menu { position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); display:flex; flex-direction:column; justify-content:center; align-items:center; z-index:200; color:white; }
-  #countdown { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-size:100px; color:#ff8800; font-weight:bold; z-index:150; }
-  button { padding:15px 30px; margin:10px; font-size:20px; background:#ff8800; color:black; border:none; border-radius:12px; cursor:pointer; }
+  body { margin:0; overflow:hidden; background:#000; font-family:Arial, sans-serif; }
+  #menu { 
+    position:absolute; top:0; left:0; width:100%; height:100%; 
+    background: linear-gradient(rgba(10,30,60,0.95), rgba(20,10,40,0.95)); 
+    display:flex; flex-direction:column; justify-content:center; align-items:center; 
+    z-index:200; color:white; text-align:center;
+  }
+  #menu img { max-width:420px; margin-bottom:20px; border-radius:15px; box-shadow:0 0 30px rgba(255,140,0,0.6); }
+  button { 
+    padding:18px 45px; margin:15px; font-size:24px; background:#ff8800; color:black; 
+    border:none; border-radius:50px; cursor:pointer; font-weight:bold; 
+  }
+  button:hover { background:#ffaa33; transform:scale(1.05); }
+  #ui { 
+    position:absolute; top:15px; left:15px; color:white; background:rgba(0,0,0,0.75); 
+    padding:12px 20px; border-radius:10px; z-index:100; font-size:18px; 
+  }
   canvas { display:block; }
 </style>
 </head>
 <body>
 
 <div id="menu">
-  <h1 style="font-size:60px; margin:0; color:#ffaa00;">CapyBike Racer</h1>
-  <p style="font-size:24px; margin:10px;">🐹 The Chillest Race 🏍️</p>
-  <button onclick="startGame()">START RACE</button>
+  <img src="https://picsum.photos/id/201/600/300" alt="CapyBike Racer Logo">
+  <h1 style="margin:8px; font-size:52px; color:#ffcc00;">CapyBike Racer</h1>
+  <p style="font-size:26px; margin:10px 0 30px;">🐹 The Chillest Race 🏍️</p>
+  <button onclick="startGame()">START RACING</button>
 </div>
 
 <div id="ui">Lap <span id="lap">1</span>/3 &nbsp;&nbsp; Time <span id="time">0.00</span><br>Position <span id="pos">1</span>/6</div>
-<div id="countdown"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
 <script src="https://sdk.play.fun"></script>
 
 <script>
-// =============== GAME CODE ===============
+// =============== VARIABLES ===============
 let scene, camera, renderer, bikeGroup, playerBike;
 let speed = 0, lean = 0, lap = 1, raceTime = 0;
 let gameState = "menu";
-let aiBikes = [], items = [];
-let ogp;
+let aiBikes = [];
 
-function init() {
+// =============== INIT THREE.JS ===============
+function initGame() {
   scene = new THREE.Scene();
   scene.background = new THREE.Color(0x88ccff);
-  scene.fog = new THREE.Fog(0x88ccff, 60, 250);
+  scene.fog = new THREE.Fog(0x88ccff, 80, 300);
 
   camera = new THREE.PerspectiveCamera(70, window.innerWidth/window.innerHeight, 0.1, 1000);
-  renderer = new THREE.WebGLRenderer({antialias:true});
+  renderer = new THREE.WebGLRenderer({antialias: true});
   renderer.setSize(window.innerWidth, window.innerHeight);
   document.body.appendChild(renderer.domElement);
 
+  // Lights
   scene.add(new THREE.AmbientLight(0xaaaaaa));
   const sun = new THREE.DirectionalLight(0xffffff, 1.2);
-  sun.position.set(30, 50, 20);
+  sun.position.set(30, 50, 40);
   scene.add(sun);
 
-  // Bike
+  // Player Bike
   bikeGroup = new THREE.Group();
   playerBike = createBike(0xff5500);
   bikeGroup.add(playerBike);
-  bikeGroup.position.set(0, 2, 50);
+  bikeGroup.position.set(0, 3, 60);
   scene.add(bikeGroup);
 
-  // AI Bikes
+  // Simple AI Bikes
   for(let i = 0; i < 5; i++) {
-    const ai = new THREE.Group();
-    ai.add(createBike(0x4488ff + i*0x111111));
-    ai.position.set(-10 + i*5, 2, 55 + i*4);
-    ai.userData = {speed: 0.7 + Math.random()*0.5, offset: i};
+    let ai = new THREE.Group();
+    ai.add(createBike(0x4488ff + i*0x222222));
+    ai.position.set(-12 + i*5, 3, 70 + i*6);
+    ai.userData = { offset: i };
     scene.add(ai);
     aiBikes.push(ai);
   }
@@ -76,89 +89,76 @@ function init() {
 }
 
 function createBike(color) {
-  const g = new THREE.Group();
-  const frame = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.7, 3.5), new THREE.MeshLambertMaterial({color}));
-  g.add(frame);
+  const group = new THREE.Group();
+  const frame = new THREE.Mesh(
+    new THREE.BoxGeometry(1.2, 0.8, 3.6),
+    new THREE.MeshLambertMaterial({color: color})
+  );
+  group.add(frame);
 
-  const wheelGeo = new THREE.CylinderGeometry(0.5, 0.5, 0.4, 20);
-  const wheelMat = new THREE.MeshLambertMaterial({color:0x111111});
-  const fw = new THREE.Mesh(wheelGeo, wheelMat);
-  fw.rotation.z = Math.PI/2;
-  fw.position.set(0,0.6,1.5);
-  g.add(fw);
-  const rw = fw.clone();
-  rw.position.z = -1.5;
-  g.add(rw);
+  const wheelGeo = new THREE.CylinderGeometry(0.5, 0.5, 0.4, 16);
+  const wheelMat = new THREE.MeshLambertMaterial({color: 0x111111});
+  const frontWheel = new THREE.Mesh(wheelGeo, wheelMat);
+  frontWheel.rotation.z = Math.PI/2;
+  frontWheel.position.set(0, 0.6, 1.6);
+  group.add(frontWheel);
 
-  // Capybara
-  const body = new THREE.Mesh(new THREE.BoxGeometry(0.9,1.2,1), new THREE.MeshLambertMaterial({color:0xdda866}));
-  body.position.y = 1.4;
-  g.add(body);
+  const rearWheel = frontWheel.clone();
+  rearWheel.position.z = -1.6;
+  group.add(rearWheel);
 
-  return g;
+  return group;
 }
 
 function startGame() {
   document.getElementById('menu').style.display = 'none';
-  gameState = "countdown";
-  raceTime = 0;
-  lap = 1;
-  initCountdown();
-  if (!ogp) ogp = new OpenGameSDK();
-}
-
-function initCountdown() {
-  let count = 3;
-  const cd = document.getElementById('countdown');
-  cd.style.display = 'block';
-  const interval = setInterval(() => {
-    count--;
-    cd.textContent = count || "GO!";
-    if (count <= 0) {
-      clearInterval(interval);
-      setTimeout(() => cd.style.display = 'none', 800);
-      gameState = "racing";
-    }
-  }, 1000);
+  gameState = "racing";
+  initGame();
+  animate();
 }
 
 function animate() {
   requestAnimationFrame(animate);
 
-  if (gameState !== "racing") {
-    renderer.render(scene, camera);
-    return;
-  }
+  if (gameState !== "racing") return;
 
   raceTime += 0.016;
   document.getElementById('time').textContent = raceTime.toFixed(2);
 
-  // Controls (Keyboard)
-  const keys = {};
-  window.addEventListener('keydown', e => keys[e.key] = true);
-  window.addEventListener('keyup', e => keys[e.key] = false);
-
+  // Keyboard Controls
+  const keys = window.keys || {};
   let steer = 0;
   if (keys['ArrowLeft'] || keys['a']) steer = 1;
   if (keys['ArrowRight'] || keys['d']) steer = -1;
 
-  speed = (keys['ArrowUp'] || keys['w']) ? Math.min(speed + 0.05, 1.8) : speed * 0.92;
+  if (keys['ArrowUp'] || keys['w']) speed = Math.min(speed + 0.06, 1.9);
+  else speed *= 0.93;
 
-  lean = lean * 0.8 + steer * 12;
-  playerBike.rotation.z = THREE.MathUtils.degToRad(lean * 3);
-  playerBike.rotation.y = THREE.MathUtils.degToRad(steer * 15);
+  // Leaning Physics
+  lean = lean * 0.75 + steer * 14;
+  playerBike.rotation.z = THREE.MathUtils.degToRad(lean * 3.5);
+  playerBike.rotation.y = THREE.MathUtils.degToRad(steer * 18);
 
-  const move = new THREE.Vector3(0, 0, speed);
-  move.applyQuaternion(bikeGroup.quaternion);
-  bikeGroup.position.add(move);
+  // Movement
+  const velocity = new THREE.Vector3(0, 0, speed);
+  velocity.applyQuaternion(bikeGroup.quaternion);
+  bikeGroup.position.add(velocity);
 
-  // Camera
-  camera.position.set(bikeGroup.position.x * 0.6, bikeGroup.position.y + 8, bikeGroup.position.z + 18);
-  camera.lookAt(bikeGroup.position.x, bikeGroup.position.y + 2, bikeGroup.position.z - 30);
+  // Camera Follow
+  camera.position.set(
+    bikeGroup.position.x * 0.7,
+    bikeGroup.position.y + 9,
+    bikeGroup.position.z + 22
+  );
+  camera.lookAt(bikeGroup.position.x, bikeGroup.position.y + 3, bikeGroup.position.z - 40);
 
   renderer.render(scene, camera);
 }
-animate();
+
+// Keyboard listeners
+window.keys = {};
+window.addEventListener('keydown', e => window.keys[e.key] = true);
+window.addEventListener('keyup', e => window.keys[e.key] = false);
 </script>
 </body>
 </html>
